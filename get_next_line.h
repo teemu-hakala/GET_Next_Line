@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:23:04 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/13 14:20:33 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/13 16:33:37 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,5 +24,15 @@ typedef struct s_buffer
 	size_t	count;
 	int		fd;
 }	t_buffer;
+
+/*
+typedef struct s_buffer
+{
+	int		fd;
+	char	*buf;
+	size_t	idx;
+	size_t	count;
+}	t_buffer;
+*/
 
 #endif
