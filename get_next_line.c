@@ -6,13 +6,14 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/10 13:37:42 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/13 16:24:04 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 #include "libft/includes/libft.h"
 #include <stdlib.h>
+#include <unistd.h>
 
 static int	free_buffer_lst(t_list *head)
 {
@@ -32,7 +33,7 @@ static int	free_buffer_lst(t_list *head)
 	Negative file descriptor fd will remove node, positive one will add.
 */
 
-static char	*ft_lstfetch(t_list *head, int fd)
+static t_buffer	*ft_lstfetch(t_list *head, int fd)
 {
 	t_buffer	*buf;
 	t_list		*previous;
@@ -40,9 +41,10 @@ static char	*ft_lstfetch(t_list *head, int fd)
 	previous = head;
 	while (head)
 	{
-		if (ft_sign(fd) == 1 && ((t_buffer *)head->content)->fd == ft_abs(fd))
-			return (((t_buffer *)head->content)->buf);
-		else if (((t_buffer *)head->content)->fd == ft_abs(fd))
+		if (ft_sign(fd) == 1 && (size_t)((t_buffer *)head->content)->fd \
+			== ft_abs(fd))
+			return ((t_buffer *)head->content);
+		else if ((size_t)((t_buffer *)head->content)->fd == ft_abs(fd))
 		{
 			free(((t_buffer *)head->content)->buf);
 			free((t_buffer *)head->content); //ft_lstpop
@@ -57,7 +59,12 @@ static char	*ft_lstfetch(t_list *head, int fd)
 	buf->fd = fd;
 	buf->buf = ft_strnew(0);
 	buf->pos = buf->buf;
-	head->next = ft_lstnew(buf, sizeof(t_buffer));
+	buf->count = 0;
+	if (head)
+		head->next = ft_lstnew(buf, sizeof(t_buffer));
+	else
+		head = ft_lstnew(buf, sizeof(t_buffer));
+	return (buf);
 }
 
 /*
@@ -72,13 +79,14 @@ int	get_next_line(const int fd, char **line)
 	ssize_t			read_bytes;
 	char			*end_of_line;
 	char			*temp;
-	char			*heap_buf;
 
 	buf = ft_lstfetch(fd_lst, fd);
 	if (!buf)
 		return (free_buffer_lst(fd_lst));
 	//buf contains information still, do not read
-	while (1)
+	end_of_line = ft_memchr(buf->pos, '\n', BUFF_SIZE * buf->count \
+		- (size_t)(buf->pos - buf->buf));
+	while (!end_of_line)
 	{
 		read_bytes = read(buf->fd, stack_buf, BUFF_SIZE);
 		if (read_bytes < 0)
@@ -86,17 +94,16 @@ int	get_next_line(const int fd, char **line)
 		else if (read_bytes == 0)
 			return ((int)ft_lstfetch(fd_lst, -fd));
 		temp = buf->buf;
-		buf->buf = (char *)ft_memjoin(buf->pos, stack_buf, \
-			(buf->count++) * BUFF_SIZE - (buf->buf - buf->pos), read_bytes);
+		buf->buf = (char *)ft_memjoin(buf->pos, stack_buf, (buf->count++) \
+			* BUFF_SIZE - (size_t)(buf->pos - buf->buf), (size_t)read_bytes);
+		buf->pos = buf->buf + ;
 		free(temp);
 		if (!buf->buf)
 			return (free_buffer_lst(fd_lst));
-		end_of_line = (char *)ft_memchr(buf->pos, '\n', read_bytes);
-		if (end_of_line)
-		{
-			*line = (char *)ft_memdup(buf->pos, end_of_line - buf->pos + 2);
-			*line[end_of_line - buf->buf] = '\0';
-			buf->pos = end_of_line + 1; //protect overrunning
-		}
+		end_of_line = (char *)ft_memchr(buf->pos, '\n', (size_t)read_bytes);
 	}
+	*line = (char *)ft_memdup(buf->pos, (size_t)(end_of_line - buf->pos) + 2);
+	*line[end_of_line - buf->buf] = '\0';
+	buf->pos = end_of_line + 1; //protect overrunning
+	return (1);
 }
