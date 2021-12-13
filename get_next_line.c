@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/13 17:10:11 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/13 18:50:10 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,13 +79,11 @@ int	get_next_line(const int fd, char **line)
 	ssize_t			read_bytes;
 	char			*end_of_line;
 	char			*temp;
-	size_t			idx;
 
-	ft_lstfetch(&fd_lst, fd);
+	ft_lstfetch(&fd_lst, fd); // do not alter fd_lst
 	buf = (t_buffer *)fd_lst->content;
 	if (!buf)
 		return (free_buffer_lst(fd_lst));
-	//buf contains information still, do not read
 	end_of_line = ft_memchr(buf->pos, '\n', BUFF_SIZE * buf->count \
 		- (size_t)(buf->pos - buf->buf));
 	while (!end_of_line)
@@ -95,11 +93,10 @@ int	get_next_line(const int fd, char **line)
 			return (-1);
 		else if (read_bytes == 0)
 			return ((int)ft_lstfetch(&fd_lst, -fd));
-		temp = buf->buf;
-		idx = (size_t)(buf->pos - buf->buf); //pass as a parameter?
-		buf->buf = (char *)ft_memjoin(buf->pos, stack_buf, \
-			(buf->count) * BUFF_SIZE - (size_t)(idx), (size_t)read_bytes);
-		buf->pos = buf->buf + idx;
+		temp = buf->buf; //pass as a parameter?
+		buf->buf = (char *)ft_memjoin(buf->pos, stack_buf, buf->count * \
+			BUFF_SIZE - (size_t)(buf->pos - buf->buf), (size_t)read_bytes);
+		buf->pos = buf->buf + (size_t)(buf->pos - temp);
 		free(temp);
 		if (!buf->buf)
 			return (free_buffer_lst(fd_lst));
