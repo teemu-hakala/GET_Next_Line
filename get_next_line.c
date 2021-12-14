@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/14 21:25:23 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/14 21:58:16 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,8 @@ int	get_next_line(const int fd, char **line)
 			return (0);
 		}
 		buf[bytes] = '\0';
-		if (bytes < BUFF_SIZE)
+		end_of_line = ft_strchr(buf, '\n');
+		if (!end_of_line && bytes < BUFF_SIZE)
 		{
 			temp = *line;
 			*line = ft_strjoin(*line, buf);
@@ -64,12 +65,17 @@ int	get_next_line(const int fd, char **line)
 			buf += BUFF_SIZE;
 			return (1);
 		}
-		end_of_line = ft_strchr(buf, '\n');
 	}
 	*end_of_line = '\0';
 	temp = *line;
 	*line = ft_strjoin(*line, buf);
 	free(temp);
-	buf = end_of_line + 1;
+	if (bytes == BUFF_SIZE)
+		buf = end_of_line + 1;
+	else
+	{
+		buf += BUFF_SIZE;
+		*buf = '\0';
+	}
 	return (1);
 }
