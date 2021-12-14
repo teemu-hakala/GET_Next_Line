@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/14 02:38:59 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/14 04:26:36 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ static t_buffer	*ft_lstfetch(t_list **head, int fd)
 {
 	t_buffer	*buf;
 	t_list		*previous;
+	t_list		*new;
 
 	previous = *head;
 	while (*head)
@@ -61,10 +62,13 @@ static t_buffer	*ft_lstfetch(t_list **head, int fd)
 	buf->pos = buf->buf;
 	buf->count = 0;
 	buf->rem = 0;
+	new = ft_lstnew(buf, sizeof(t_buffer));
+	if (!new)
+		return (NULL);
 	if (*head)
-		(*head)->next = ft_lstnew(buf, sizeof(t_buffer));
+		(*head)->next = new;
 	else
-		*head = ft_lstnew(buf, sizeof(t_buffer));
+		*head = new;
 	return (buf);
 }
 
@@ -101,14 +105,14 @@ int	get_next_line(const int fd, char **line)
 		buf->rem += (size_t)bytes;
 		buf->count++;
 		buf->pos = buf->buf;
-		free(temp);
+		ft_strdel(&temp);
 		if (!buf->buf)
 			return (free_buffer_lst(fd_lst));
 		end_of_line = (char *)ft_memchr(buf->pos, '\n', buf->rem);
 	}
-	*line = (char *)ft_memdup(buf->pos, (size_t)(end_of_line - buf->pos));
+	*line = (char *)ft_memdup(buf->pos, (size_t)(end_of_line - buf->pos) + 2);
 	(*line)[end_of_line - buf->buf] = '\0';
+	buf->rem -= (size_t)(end_of_line + 1 - buf->pos);
 	buf->pos = end_of_line + 1; //protect overrunning
-	buf->rem = buf->count * BUFF_SIZE - (size_t)(buf->pos - buf->buf);
 	return (1);
 }
