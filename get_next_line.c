@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/13 18:50:10 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/14 02:38:59 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,7 @@ static t_buffer	*ft_lstfetch(t_list **head, int fd)
 	buf->buf = ft_strnew(0);
 	buf->pos = buf->buf;
 	buf->count = 0;
+	buf->rem = 0;
 	if (*head)
 		(*head)->next = ft_lstnew(buf, sizeof(t_buffer));
 	else
@@ -76,7 +77,7 @@ int	get_next_line(const int fd, char **line)
 	static t_list	*fd_lst;
 	t_buffer		*buf;
 	char			stack_buf[BUFF_SIZE];
-	ssize_t			read_bytes;
+	ssize_t			bytes;
 	char			*end_of_line;
 	char			*temp;
 
@@ -84,27 +85,30 @@ int	get_next_line(const int fd, char **line)
 	buf = (t_buffer *)fd_lst->content;
 	if (!buf)
 		return (free_buffer_lst(fd_lst));
-	end_of_line = ft_memchr(buf->pos, '\n', BUFF_SIZE * buf->count \
-		- (size_t)(buf->pos - buf->buf));
+	end_of_line = ft_memchr(buf->pos, '\n', buf->rem);
+	if (!end_of_line)
+		buf->count = 0;
 	while (!end_of_line)
 	{
-		read_bytes = read(buf->fd, stack_buf, BUFF_SIZE);
-		if (read_bytes < 0)
+		bytes = read(buf->fd, stack_buf, BUFF_SIZE);
+		if (bytes < 0)
 			return (-1);
-		else if (read_bytes == 0)
+		else if (bytes == 0)
 			return ((int)ft_lstfetch(&fd_lst, -fd));
 		temp = buf->buf; //pass as a parameter?
-		buf->buf = (char *)ft_memjoin(buf->pos, stack_buf, buf->count * \
-			BUFF_SIZE - (size_t)(buf->pos - buf->buf), (size_t)read_bytes);
-		buf->pos = buf->buf + (size_t)(buf->pos - temp);
+		buf->buf = (char *)ft_memjoin(buf->pos, stack_buf, \
+			buf->rem, (size_t)bytes);
+		buf->rem += (size_t)bytes;
+		buf->count++;
+		buf->pos = buf->buf;
 		free(temp);
 		if (!buf->buf)
 			return (free_buffer_lst(fd_lst));
-		end_of_line = (char *)ft_memchr(buf->pos, '\n', BUFF_SIZE * \
-			(buf->count)++ + (size_t)read_bytes);
+		end_of_line = (char *)ft_memchr(buf->pos, '\n', buf->rem);
 	}
 	*line = (char *)ft_memdup(buf->pos, (size_t)(end_of_line - buf->pos));
 	(*line)[end_of_line - buf->buf] = '\0';
 	buf->pos = end_of_line + 1; //protect overrunning
+	buf->rem = buf->count * BUFF_SIZE - (size_t)(buf->pos - buf->buf);
 	return (1);
 }
