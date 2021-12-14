@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/14 19:10:46 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/14 20:23:59 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,19 @@ int	get_next_line(const int fd, char **line)
 		if (bytes != BUFF_SIZE && !first && !end_of_line)
 			buf = ft_strchr(buf, '\0') - BUFF_SIZE;
 		bytes = read(fd, buf, BUFF_SIZE);
-		if (bytes <= 0)
+		if (bytes < 0)
 			return ((int)bytes);
 		buf[bytes] = '\0';
+		if (!bytes)
+			return (0);
+		if (bytes < BUFF_SIZE)
+		{
+			temp = *line;
+			*line = ft_strjoin(*line, buf);
+			free(temp);
+			buf += bytes;
+			return (1);
+		}
 		end_of_line = ft_strchr(buf, '\n');
 	}
 	*end_of_line = '\0';
