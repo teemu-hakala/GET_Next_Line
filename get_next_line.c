@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/14 21:58:16 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/14 22:43:11 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,9 @@ int	get_next_line(const int fd, char **line)
 		}
 		buf[bytes] = '\0';
 		end_of_line = ft_strchr(buf, '\n');
+		if (bytes < BUFF_SIZE)
+			*((char *)ft_memset(&buf[bytes + !end_of_line], -1, \
+				(size_t)(BUFF_SIZE - bytes)) + (BUFF_SIZE - bytes + 1)) = '\0';
 		if (!end_of_line && bytes < BUFF_SIZE)
 		{
 			temp = *line;
@@ -70,7 +73,7 @@ int	get_next_line(const int fd, char **line)
 	temp = *line;
 	*line = ft_strjoin(*line, buf);
 	free(temp);
-	if (bytes == BUFF_SIZE)
+	if (end_of_line)
 		buf = end_of_line + 1;
 	else
 	{
