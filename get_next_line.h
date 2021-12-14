@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:23:04 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/14 16:16:07 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/14 16:36:17 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,24 +16,5 @@
 # include <string.h>
 
 int	get_next_line(const int fd, char **line);
-
-typedef struct s_buffer
-{
-	char	*buf;
-	char	*pos;
-	size_t	rem;
-	size_t	count;
-	int		fd;
-}	t_buffer;
-
-/*
-typedef struct s_buffer
-{
-	int		fd;
-	char	*buf;
-	size_t	idx;
-	size_t	count;
-}	t_buffer;
-*/
 
 #endif
