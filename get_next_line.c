@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/14 04:26:36 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/14 15:03:38 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,10 @@ static t_buffer	*ft_lstfetch(t_list **head, int fd)
 	temp_line = (char *)ft_memdup(buf->buf, end_of_line - buf->buf + 2);
 */
 
+/*
+	Push buffer's to line. Even heap buffer size should stay?
+*/
+
 int	get_next_line(const int fd, char **line)
 {
 	static t_list	*fd_lst;
@@ -110,9 +114,9 @@ int	get_next_line(const int fd, char **line)
 			return (free_buffer_lst(fd_lst));
 		end_of_line = (char *)ft_memchr(buf->pos, '\n', buf->rem);
 	}
-	*line = (char *)ft_memdup(buf->pos, (size_t)(end_of_line - buf->pos) + 2);
+	*line = (char *)ft_memdup(buf->pos, (size_t)(end_of_line - buf->pos));
 	(*line)[end_of_line - buf->buf] = '\0';
 	buf->rem -= (size_t)(end_of_line + 1 - buf->pos);
-	buf->pos = end_of_line + 1; //protect overrunning
+	buf->pos = end_of_line + 1; //protect? (-> memchr won't run with rem 0)
 	return (1);
 }
