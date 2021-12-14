@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/14 15:16:53 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/14 15:49:45 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,8 @@
 
 static int	free_buffer_lst(t_list *head)
 {
-	t_list		*next;
+	(void)head;
+	/*t_list		*next;
 	//Careful! Do not free the whole lst with one failing.
 	while (head)
 	{
@@ -25,7 +26,7 @@ static int	free_buffer_lst(t_list *head)
 		next = head->next;
 		free(head);
 		head = next;
-	}
+	}*/
 	return (-1);
 }
 
@@ -65,7 +66,7 @@ static t_list	*ft_lstfetch(t_list **head, int fd)
 	new = ft_lstnew(buf, sizeof(t_buffer));
 	if (!new)
 	{
-		free(buf);
+		ft_memdel((void **)&buf);
 		return (NULL);
 	}
 	if (*head)
