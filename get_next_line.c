@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/14 15:03:38 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/14 15:16:53 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ static int	free_buffer_lst(t_list *head)
 	Negative file descriptor fd will remove node, positive one will add.
 */
 
-static t_buffer	*ft_lstfetch(t_list **head, int fd)
+static t_list	*ft_lstfetch(t_list **head, int fd)
 {
 	t_buffer	*buf;
 	t_list		*previous;
@@ -44,7 +44,7 @@ static t_buffer	*ft_lstfetch(t_list **head, int fd)
 	{
 		if (ft_sign(fd) == 1 && (size_t)((t_buffer *)(*head)->content)->fd \
 			== ft_abs(fd))
-			return ((t_buffer *)(*head)->content);
+			return (*head);
 		else if ((size_t)((t_buffer *)(*head)->content)->fd == ft_abs(fd))
 		{
 			free(((t_buffer *)(*head)->content)->buf);
@@ -64,12 +64,17 @@ static t_buffer	*ft_lstfetch(t_list **head, int fd)
 	buf->rem = 0;
 	new = ft_lstnew(buf, sizeof(t_buffer));
 	if (!new)
+	{
+		free(buf);
 		return (NULL);
+	}
 	if (*head)
+	{
 		(*head)->next = new;
-	else
-		*head = new;
-	return (buf);
+		return ((*head)->next);
+	}
+	*head = new;
+	return (*head);
 }
 
 /*
@@ -83,14 +88,17 @@ static t_buffer	*ft_lstfetch(t_list **head, int fd)
 int	get_next_line(const int fd, char **line)
 {
 	static t_list	*fd_lst;
+	t_list			*current;
 	t_buffer		*buf;
 	char			stack_buf[BUFF_SIZE];
 	ssize_t			bytes;
 	char			*end_of_line;
 	char			*temp;
 
-	ft_lstfetch(&fd_lst, fd); // do not alter fd_lst
-	buf = (t_buffer *)fd_lst->content;
+	buf = NULL;
+	current = ft_lstfetch(&fd_lst, fd);
+	if (current)
+		buf = (t_buffer *)current->content;
 	if (!buf)
 		return (free_buffer_lst(fd_lst));
 	end_of_line = ft_memchr(buf->pos, '\n', buf->rem);
