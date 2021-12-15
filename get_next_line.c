@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/14 22:43:11 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/15 18:49:23 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,11 +22,12 @@ int	get_next_line(const int fd, char **line)
 	char		*end_of_line;
 	char		*temp;
 	char		first;
+	size_t		len;
 
 	*line = ft_strnew(0);
 	end_of_line = NULL;
-	bytes = 0;
 	first = 0;
+	bytes = 0;
 	if (!buf)
 	{
 		first = 1;
@@ -37,28 +38,32 @@ int	get_next_line(const int fd, char **line)
 	}
 	else
 		end_of_line = ft_strchr(buf, '\n');
+	len = ft_strlen(buf);
+	if (!end_of_line && len)
+	{
+		buf += len - BUFF_SIZE;
+		ft_strdel(&(buf));
+	}
 	while (!end_of_line)
 	{
-		temp = *line;
-		*line = ft_strjoin(*line, buf);
-		free(temp);
-		if (bytes != BUFF_SIZE && !first && !end_of_line)
-			buf = ft_strchr(buf, '\0') - BUFF_SIZE;
+		if (buf)
+		{
+			temp = *line;
+			*line = ft_strjoin(*line, buf);
+			free(temp);
+			if (buf && bytes != BUFF_SIZE && !first)
+				buf = ft_strchr(buf, '\0') - BUFF_SIZE;
+		}
 		bytes = read(fd, buf, BUFF_SIZE);
 		if (bytes < 0)
 			return ((int)bytes);
 		if (!bytes)
-		{
-			buf[0] = '\0';
-			free(buf);
-			buf = NULL;
 			return (0);
-		}
 		buf[bytes] = '\0';
 		end_of_line = ft_strchr(buf, '\n');
-		if (bytes < BUFF_SIZE)
+		if (first && bytes < BUFF_SIZE) //branchless?
 			*((char *)ft_memset(&buf[bytes + !end_of_line], -1, \
-				(size_t)(BUFF_SIZE - bytes)) + (BUFF_SIZE - bytes + 1)) = '\0';
+				(size_t)(BUFF_SIZE - bytes)) + (BUFF_SIZE - bytes)) = '\0';
 		if (!end_of_line && bytes < BUFF_SIZE)
 		{
 			temp = *line;
@@ -73,12 +78,7 @@ int	get_next_line(const int fd, char **line)
 	temp = *line;
 	*line = ft_strjoin(*line, buf);
 	free(temp);
-	if (end_of_line)
-		buf = end_of_line + 1;
-	else
-	{
-		buf += BUFF_SIZE;
-		*buf = '\0';
-	}
+	*end_of_line = '\n';
+	buf = end_of_line + 1; //overrun?
 	return (1);
 }
