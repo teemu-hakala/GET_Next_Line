@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/15 18:49:23 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/16 13:43:41 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,67 +18,61 @@
 int	get_next_line(const int fd, char **line)
 {
 	static char	*buf;
-	ssize_t		bytes;
+	static char	*debug;
 	char		*end_of_line;
 	char		*temp;
-	char		first;
-	size_t		len;
+	ssize_t		bytes;
 
 	*line = ft_strnew(0);
 	end_of_line = NULL;
-	first = 0;
-	bytes = 0;
 	if (!buf)
 	{
-		first = 1;
-		buf = (char *)malloc(sizeof(char) * (BUFF_SIZE + 1));
+		buf = (char *)malloc(sizeof(char) * (BUFF_SIZE + 2));
 		if (!buf)
 			return (-1);
 		*buf = '\0';
+		ft_memset(buf + 1, -3, BUFF_SIZE - 1);
+		ft_memcpy(buf + BUFF_SIZE, "\0\xff", 2);
+		debug = buf;
 	}
 	else
 		end_of_line = ft_strchr(buf, '\n');
-	len = ft_strlen(buf);
-	if (!end_of_line && len)
-	{
-		buf += len - BUFF_SIZE;
-		ft_strdel(&(buf));
-	}
 	while (!end_of_line)
 	{
-		if (buf)
-		{
-			temp = *line;
-			*line = ft_strjoin(*line, buf);
-			free(temp);
-			if (buf && bytes != BUFF_SIZE && !first)
-				buf = ft_strchr(buf, '\0') - BUFF_SIZE;
-		}
+		temp = *line;
+		*line = ft_strjoin(*line, buf);
+		free(temp);
+		if (!*line) //err = -!*line;
+			return (-1);
 		bytes = read(fd, buf, BUFF_SIZE);
 		if (bytes < 0)
-			return ((int)bytes);
+			return (-1); //err = bytes; (man 2 read) -> -1
 		if (!bytes)
-			return (0);
-		buf[bytes] = '\0';
-		end_of_line = ft_strchr(buf, '\n');
-		if (first && bytes < BUFF_SIZE) //branchless?
-			*((char *)ft_memset(&buf[bytes + !end_of_line], -1, \
-				(size_t)(BUFF_SIZE - bytes)) + (BUFF_SIZE - bytes)) = '\0';
-		if (!end_of_line && bytes < BUFF_SIZE)
 		{
-			temp = *line;
-			*line = ft_strjoin(*line, buf);
-			free(temp);
-			buf[BUFF_SIZE] = '\0';
-			buf += BUFF_SIZE;
-			return (1);
+			end_of_line = ft_strchr(buf, '\0');
+			if (*(end_of_line + 1) == '\xfe') //existance of e_o_l guaranteed
+			{
+				end_of_line = ft_strchr(end_of_line + 1, '\0');
+				if (*(end_of_line + 1) == '\xff')
+					free(end_of_line - BUFF_SIZE);
+				buf = NULL;
+			}
+			else if (*(end_of_line + 2) == '\xff')
+			{
+				free(end_of_line + 1 - BUFF_SIZE);
+				buf = NULL;
+			}
+			return (0); // bytes <= 0; return (bytes);
 		}
+		else if (bytes < BUFF_SIZE)
+			ft_memcpy(buf + bytes, "\0\xfe", 2 - (bytes + 1 == BUFF_SIZE));
+		end_of_line = ft_strchr(buf, '\n');
 	}
 	*end_of_line = '\0';
 	temp = *line;
 	*line = ft_strjoin(*line, buf);
 	free(temp);
-	*end_of_line = '\n';
-	buf = end_of_line + 1; //overrun?
+	*end_of_line = '\xfe';
+	buf = end_of_line + 1;
 	return (1);
 }
