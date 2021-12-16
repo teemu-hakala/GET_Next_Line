@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/16 16:53:05 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/16 21:20:48 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ int	get_next_line(const int fd, char **line)
 	char		*temp;
 	ssize_t		bytes;
 
-	if (fd < 0)
+	if (fd < 0 || !line)
 		return (-1);
 	*line = ft_strnew(0);
 	end_of_line = NULL;
@@ -50,6 +50,11 @@ int	get_next_line(const int fd, char **line)
 			return (-1); //err = bytes; (man 2 read) -> -1
 		if (!bytes)
 		{
+			if (ft_strlen(*line))
+			{
+				*buf = '\0';
+				return (1);
+			}
 			free(buf);
 			buf = NULL;
 			return (0); // bytes <= 0; return (bytes);
@@ -61,14 +66,10 @@ int	get_next_line(const int fd, char **line)
 	temp = *line;
 	*line = ft_strjoin(*line, buf);
 	free(temp);
-	*end_of_line = '\n';
-	if (ft_strlen(buf) < BUFF_SIZE)
-	{
-		temp = buf;
-		buf = ft_strdup(end_of_line + 1); //ft_strncpy...
-		free(temp);
-	}
-	else
-		buf = end_of_line + 1;
+	temp = buf;
+	buf = ft_strdup(end_of_line + 1);
+	free(temp);
+	if (!buf)
+		return (-1);
 	return (1);
 }
