@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/16 15:33:49 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/16 16:53:05 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,12 +29,11 @@ int	get_next_line(const int fd, char **line)
 	end_of_line = NULL;
 	if (!buf)
 	{
-		buf = (char *)malloc(sizeof(char) * (BUFF_SIZE + 2));
+		buf = (char *)malloc(sizeof(char) * (BUFF_SIZE + 1));
 		if (!buf)
 			return (-1);
 		*buf = '\0';
-		ft_memset(buf + 1, -3, BUFF_SIZE - 1); // set only when necessary
-		ft_memcpy(buf + BUFF_SIZE, "\0\xff", 2);
+		*(buf + BUFF_SIZE) = '\0';
 		debug = buf;
 	}
 	else
@@ -51,42 +50,25 @@ int	get_next_line(const int fd, char **line)
 			return (-1); //err = bytes; (man 2 read) -> -1
 		if (!bytes)
 		{
-			if (ft_strlen(buf))
-				return (!!ft_memcpy(buf, "\0\xfe", 2 - !(buf + 1 == '\0')));
-			end_of_line = ft_strchr(buf + (*(buf + 1) == '\xfe'), '\0'); //
-			if (*(end_of_line + 1) == '\xfe') //existance of e_o_l guaranteed
-			{
-				end_of_line = ft_strchr(end_of_line + 1, '\0');
-				if (*(end_of_line + 1) == '\xff')
-				{
-					free(end_of_line - BUFF_SIZE);
-					buf = NULL;
-				}
-			}
-			else if (*(end_of_line + 2) == '\xff')
-			{
-				free(end_of_line + 1 - BUFF_SIZE);
-				buf = NULL;
-			}
+			free(buf);
+			buf = NULL;
 			return (0); // bytes <= 0; return (bytes);
 		}
-		else if (bytes < BUFF_SIZE)
-			ft_memcpy(buf + bytes, "\0\xfe", 2 - (bytes + 1 == BUFF_SIZE));
+		buf[bytes] = '\0';
 		end_of_line = ft_strchr(buf, '\n');
 	}
 	*end_of_line = '\0';
 	temp = *line;
 	*line = ft_strjoin(*line, buf);
 	free(temp);
-	if (*(end_of_line + 2) != '\xff')
+	*end_of_line = '\n';
+	if (ft_strlen(buf) < BUFF_SIZE)
 	{
-		*end_of_line = '\xfe';
-		buf = end_of_line + 1;
+		temp = buf;
+		buf = ft_strdup(end_of_line + 1); //ft_strncpy...
+		free(temp);
 	}
 	else
-	{
-		buf = end_of_line + 1 - BUFF_SIZE;
-		ft_memcpy(buf, "\0\xfe", 2);
-	}
+		buf = end_of_line + 1;
 	return (1);
 }
