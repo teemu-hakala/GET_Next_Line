@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/16 22:25:57 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/16 22:29:30 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ static int	ft_initialize_buffer(char **buf)
 	free(*buf);
 	*buf = (char *)malloc(sizeof(char) * (BUFF_SIZE + 1));
 	if (*buf)
-		*buf = '\0';
+		**buf = '\0';
 	return (-!*buf);
 }
 
@@ -52,7 +52,7 @@ static int	ft_fill(char **line, char **buf, int fd, char *end_of_line)
 
 	while (!end_of_line)
 	{
-		if (ft_strjoinfree(line, buf) || ft_initialize_buffer(&buf))
+		if (ft_strjoinfree(line, buf) || ft_initialize_buffer(buf))
 			return (-1);
 		bytes = read(fd, *buf, BUFF_SIZE);
 		if (bytes < 0)
@@ -61,14 +61,14 @@ static int	ft_fill(char **line, char **buf, int fd, char *end_of_line)
 		{
 			if (ft_strlen(*line))
 			{
-				*buf = '\0';
+				**buf = '\0';
 				return (1);
 			}
 			free(*buf);
 			*buf = NULL;
 			return (0);
 		}
-		*buf[bytes] = '\0';
+		(*buf)[bytes] = '\0';
 		end_of_line = ft_strchr(*buf, '\n');
 	}
 	return (ft_handle_tail(line, buf, end_of_line));
@@ -83,5 +83,5 @@ int	get_next_line(const int fd, char **line)
 	*line = ft_strnew(0);
 	if (!buf[fd])
 		ft_initialize_buffer(&buf[fd]);
-	ft_fill(line, &buf[fd], fd, ft_strchr(buf[fd], '\n'));
+	return (ft_fill(line, &buf[fd], fd, ft_strchr(buf[fd], '\n')));
 }
