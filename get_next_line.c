@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/16 13:43:41 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/16 15:12:16 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@ int	get_next_line(const int fd, char **line)
 	char		*temp;
 	ssize_t		bytes;
 
+	if (fd < 0)
+		return (-1);
 	*line = ft_strnew(0);
 	end_of_line = NULL;
 	if (!buf)
@@ -49,13 +51,17 @@ int	get_next_line(const int fd, char **line)
 			return (-1); //err = bytes; (man 2 read) -> -1
 		if (!bytes)
 		{
-			end_of_line = ft_strchr(buf, '\0');
+			if (ft_strlen(buf))
+				return (!!ft_memcpy(buf, "\0\xfe", 2 - !(buf + 1 == '\0')));
+			end_of_line = ft_strchr(buf + (*(buf + 1) == '\xfe'), '\0'); //
 			if (*(end_of_line + 1) == '\xfe') //existance of e_o_l guaranteed
 			{
 				end_of_line = ft_strchr(end_of_line + 1, '\0');
 				if (*(end_of_line + 1) == '\xff')
+				{
 					free(end_of_line - BUFF_SIZE);
-				buf = NULL;
+					buf = NULL;
+				}
 			}
 			else if (*(end_of_line + 2) == '\xff')
 			{
@@ -72,7 +78,15 @@ int	get_next_line(const int fd, char **line)
 	temp = *line;
 	*line = ft_strjoin(*line, buf);
 	free(temp);
-	*end_of_line = '\xfe';
-	buf = end_of_line + 1;
+	if (*(end_of_line + 2) != '\xff')
+	{
+		*end_of_line = '\xfe';
+		buf = end_of_line + 1;
+	}
+	else
+	{
+		buf = end_of_line + 1 - BUFF_SIZE;
+		ft_memcpy(buf, "\0\xfe", 2);
+	}
 	return (1);
 }
