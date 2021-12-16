@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/16 21:49:22 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/16 22:25:57 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,63 +15,73 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-int	get_next_line(const int fd, char **line)
+static int	ft_initialize_buffer(char **buf)
 {
-	static char	*buf[FD_MAX + 1];
-	char		*end_of_line;
-	char		*temp;
-	ssize_t		bytes;
+	free(*buf);
+	*buf = (char *)malloc(sizeof(char) * (BUFF_SIZE + 1));
+	if (*buf)
+		*buf = '\0';
+	return (-!*buf);
+}
 
-	if (fd < 0 || !line || fd > FD_MAX)
-		return (-1);
-	*line = ft_strnew(0);
-	end_of_line = NULL;
-	if (!buf[fd])
-	{
-		buf[fd] = (char *)malloc(sizeof(char) * (BUFF_SIZE + 1));
-		if (!buf[fd])
-			return (-1);
-		*(buf[fd]) = '\0';
-	}
-	else
-		end_of_line = ft_strchr(buf[fd], '\n');
+static int	ft_strjoinfree(char **begin, char **append)
+{
+	char	*del;
+
+	del = *begin;
+	*begin = ft_strjoin(*begin, *append);
+	free(del);
+	return (-!*begin);
+}
+
+static int	ft_handle_tail(char **line, char **buf, char *end_of_line)
+{
+	char	*del;
+
+	*end_of_line = '\0';
+	ft_strjoinfree(line, buf);
+	del = *buf;
+	*buf = ft_strdup(end_of_line + 1);
+	free(del);
+	return (-!*buf | 0x1);
+}
+
+static int	ft_fill(char **line, char **buf, int fd, char *end_of_line)
+{
+	ssize_t	bytes;
+
 	while (!end_of_line)
 	{
-		temp = *line;
-		*line = ft_strjoin(*line, buf[fd]);
-		free(temp);
-		if (!*line) //err = -!*line;
+		if (ft_strjoinfree(line, buf) || ft_initialize_buffer(&buf))
 			return (-1);
-		temp = buf[fd];
-		buf[fd] = (char *)malloc(sizeof(char) * (BUFF_SIZE + 1));
-		if (!buf[fd])
-			return (-1);
-		free(temp);
-		bytes = read(fd, buf[fd], BUFF_SIZE);
+		bytes = read(fd, *buf, BUFF_SIZE);
 		if (bytes < 0)
-			return (-1); //err = bytes; (man 2 read) -> -1
+			return (-1);
 		if (!bytes)
 		{
 			if (ft_strlen(*line))
 			{
-				*(buf[fd]) = '\0';
+				*buf = '\0';
 				return (1);
 			}
-			free(buf[fd]);
-			buf[fd] = NULL;
-			return (0); // bytes <= 0; return (bytes);
+			free(*buf);
+			*buf = NULL;
+			return (0);
 		}
-		buf[fd][bytes] = '\0';
-		end_of_line = ft_strchr(buf[fd], '\n');
+		*buf[bytes] = '\0';
+		end_of_line = ft_strchr(*buf, '\n');
 	}
-	*end_of_line = '\0';
-	temp = *line;
-	*line = ft_strjoin(*line, buf[fd]);
-	free(temp);
-	temp = buf[fd];
-	buf[fd] = ft_strdup(end_of_line + 1);
-	free(temp);
-	if (!buf[fd])
+	return (ft_handle_tail(line, buf, end_of_line));
+}
+
+int	get_next_line(const int fd, char **line)
+{
+	static char	*buf[FD_MAX + 1];
+
+	if (fd < 0 || !line || fd > FD_MAX)
 		return (-1);
-	return (1);
+	*line = ft_strnew(0);
+	if (!buf[fd])
+		ft_initialize_buffer(&buf[fd]);
+	ft_fill(line, &buf[fd], fd, ft_strchr(buf[fd], '\n'));
 }
