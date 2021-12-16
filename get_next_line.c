@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/16 15:12:16 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/16 15:33:49 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ int	get_next_line(const int fd, char **line)
 		if (!buf)
 			return (-1);
 		*buf = '\0';
-		ft_memset(buf + 1, -3, BUFF_SIZE - 1);
+		ft_memset(buf + 1, -3, BUFF_SIZE - 1); // set only when necessary
 		ft_memcpy(buf + BUFF_SIZE, "\0\xff", 2);
 		debug = buf;
 	}
