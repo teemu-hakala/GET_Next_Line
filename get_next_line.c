@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/16 21:47:16 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/16 21:49:22 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@
 int	get_next_line(const int fd, char **line)
 {
 	static char	*buf[FD_MAX + 1];
-	static char	**debug;
 	char		*end_of_line;
 	char		*temp;
 	ssize_t		bytes;
@@ -33,8 +32,6 @@ int	get_next_line(const int fd, char **line)
 		if (!buf[fd])
 			return (-1);
 		*(buf[fd]) = '\0';
-		*(buf[fd] + BUFF_SIZE) = '\0';
-		debug = buf;
 	}
 	else
 		end_of_line = ft_strchr(buf[fd], '\n');
@@ -49,7 +46,6 @@ int	get_next_line(const int fd, char **line)
 		buf[fd] = (char *)malloc(sizeof(char) * (BUFF_SIZE + 1));
 		if (!buf[fd])
 			return (-1);
-		//buf[fd][BUFF_SIZE] = '\0';
 		free(temp);
 		bytes = read(fd, buf[fd], BUFF_SIZE);
 		if (bytes < 0)
