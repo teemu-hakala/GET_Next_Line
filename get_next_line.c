@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/18 13:26:38 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/18 18:08:57 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,16 +43,17 @@ static int	ft_handle_tail(char **line, char **buf, char *end_of_line)
 	del = *buf;
 	*buf = ft_strdup(end_of_line + 1);
 	free(del);
-	return (-!*buf | 0x1);
+	return (-!(*buf && *line) | 0x1);
 }
 
 static int	ft_fill(char **line, char **buf, int fd, char *end_of_line)
 {
 	ssize_t	bytes;
 
+	bytes = 0;
 	while (!end_of_line)
 	{
-		if (ft_strjoinfree(line, buf) || ft_initialize_buffer(buf))
+		if (ft_strjoinfree(line, buf) || (!bytes && ft_initialize_buffer(buf)))
 			return (-1);
 		bytes = read(fd, *buf, BUFF_SIZE);
 		if (bytes < 0)
@@ -82,6 +83,7 @@ int	get_next_line(const int fd, char **line)
 		return (-1);
 	*line = ft_strnew(0);
 	if (!buf[fd])
-		ft_initialize_buffer(&buf[fd]);
+		if (ft_initialize_buffer(&buf[fd]))
+			return (-1);
 	return (ft_fill(line, &buf[fd], fd, ft_strchr(buf[fd], '\n')));
 }
