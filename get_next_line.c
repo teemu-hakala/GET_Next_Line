@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/16 22:29:30 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/18 13:26:38 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,8 +64,8 @@ static int	ft_fill(char **line, char **buf, int fd, char *end_of_line)
 				**buf = '\0';
 				return (1);
 			}
-			free(*buf);
-			*buf = NULL;
+			ft_strdel(buf);
+			ft_strdel(line);
 			return (0);
 		}
 		(*buf)[bytes] = '\0';
