@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/18 18:08:57 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/18 19:27:26 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,7 @@ static int	ft_fill(char **line, char **buf, int fd, char *end_of_line)
 int	get_next_line(const int fd, char **line)
 {
 	static char	*buf[FD_MAX + 1];
+	int			result;
 
 	if (fd < 0 || !line || fd > FD_MAX)
 		return (-1);
@@ -85,5 +86,8 @@ int	get_next_line(const int fd, char **line)
 	if (!buf[fd])
 		if (ft_initialize_buffer(&buf[fd]))
 			return (-1);
-	return (ft_fill(line, &buf[fd], fd, ft_strchr(buf[fd], '\n')));
+	result = ft_fill(line, &buf[fd], fd, ft_strchr(buf[fd], '\n'));
+	if (result == -1)
+		ft_strdel(line);
+	return (result);
 }
