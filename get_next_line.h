@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:23:04 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/19 12:05:55 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/19 12:25:51 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,12 @@
 # include <stdlib.h>
 # include <unistd.h>
 # include <string.h>
+
+typedef struct s_string
+{
+	char	*string;
+	ssize_t	index;
+}	t_string;
 
 int	get_next_line(const int fd, char **line);
 
