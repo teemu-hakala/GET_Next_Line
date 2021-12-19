@@ -6,14 +6,11 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/18 19:27:26 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/19 12:05:45 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include "libft/includes/libft.h"
-#include <stdlib.h>
-#include <unistd.h>
 
 static int	ft_initialize_buffer(char **buf)
 {
