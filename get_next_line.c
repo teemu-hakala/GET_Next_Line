@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/19 15:33:50 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/19 16:50:12 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,21 +50,26 @@ static int	ft_handle_tail(char **line, t_string **buf, char *end_of_line)
 static int	ft_fill(char **line, t_string **buf, int fd, char *end_of_line)
 {
 	ssize_t	bytes;
+	ssize_t	previous;
 
+	bytes = 0;
 	while (!end_of_line)
 	{
 		if (ft_strjoinfree(line, &(*buf)->string[(*buf)->index]))
 			return (-1);
+		previous = bytes;
 		bytes = read(fd, (*buf)->string, BUFF_SIZE); //into ->read (binary)
 		if (bytes < 0)
 			return (-1);
 		if (!bytes)
 		{
-			if (!(*buf)->index)
+			if (!(*buf)->index && !previous)
 			{
 				ft_strdel(&(*buf)->string);
 				ft_memdel((void **)buf);
 			}
+			else
+				(*buf)->index = 0;
 			return (!!*buf);
 		}
 		else if (bytes < BUFF_SIZE)
