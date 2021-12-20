@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:23:04 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/19 14:46:48 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/19 17:08:31 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ typedef struct s_string
 {
 	char	*string;
 	ssize_t	index;
+	ssize_t	bytes;
 }	t_string;
 
 int	get_next_line(const int fd, char **line);
