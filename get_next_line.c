@@ -6,85 +6,92 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/19 12:05:45 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/21 21:52:07 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static int	ft_initialize_buffer(char **buf)
+static t_rem	*ft_create_remnant(char **buf, ssize_t addition)
 {
-	free(*buf);
-	*buf = (char *)malloc(sizeof(char) * (BUFF_SIZE + 1));
-	if (*buf)
-		**buf = '\0';
-	return (-!*buf);
+	t_rem	*remnant;
+
+	remnant = (t_rem *)malloc(sizeof(t_rem));
+	if (!remnant)
+		return (NULL);
+	remnant->len = (size_t)(BUFF_SIZE - addition - 1);
+	remnant->str = (char *)malloc(sizeof(char) * (remnant->len + 1));
+	if (!remnant->str)
+		return (NULL);
+	ft_memcpy(remnant->str, *buf, remnant->len);
+	remnant->str[remnant->len] = '\0';
+	return (remnant);
 }
 
-static int	ft_strjoinfree(char **begin, char **append)
+static char	*ft_read_buffer(int fd, char **buf, ssize_t *addition)
 {
-	char	*del;
+	char	*newline;
 
-	del = *begin;
-	*begin = ft_strjoin(*begin, *append);
-	free(del);
-	return (-!*begin);
+	*addition = read(fd, *buf, BUFF_SIZE);
+	if (addition <= 0)
+		return (NULL);
+	(*buf)[*addition] = '\0';
+	newline = ft_memchr(*buf, '\n', (size_t)*addition);
+	if (newline)
+		*addition = /*addition -*/ (ssize_t)(newline - *buf);
+	return (newline);
 }
 
-static int	ft_handle_tail(char **line, char **buf, char *end_of_line)
+static char	*ft_link_bufs(const int fd, char **line, size_t size)
 {
-	char	*del;
+	static t_rem	*remnant;
+	char			*buf;
+	ssize_t			addition;
+	char			*newline;
+	size_t			old_len;
+	
 
-	*end_of_line = '\0';
-	ft_strjoinfree(line, buf);
-	del = *buf;
-	*buf = ft_strdup(end_of_line + 1);
-	free(del);
-	return (-!(*buf && *line) | 0x1);
-}
-
-static int	ft_fill(char **line, char **buf, int fd, char *end_of_line)
-{
-	ssize_t	bytes;
-
-	bytes = 0;
-	while (!end_of_line)
+	buf = (char *)malloc(sizeof(char) * (BUFF_SIZE + 1));
+	if (!remnant)
+		remnant = ft_create_remnant(&buf, BUFF_SIZE - 1);
+	old_len = remnant->len;
+	if (!size)
 	{
-		if (ft_strjoinfree(line, buf) || (!bytes && ft_initialize_buffer(buf)))
-			return (-1);
-		bytes = read(fd, *buf, BUFF_SIZE);
-		if (bytes < 0)
-			return (-1);
-		if (!bytes)
+		newline = ft_memchr(remnant->str, '\n', remnant->len);
+		if (newline)
 		{
-			if (ft_strlen(*line))
-			{
-				**buf = '\0';
-				return (1);
-			}
-			ft_strdel(buf);
-			ft_strdel(line);
-			return (0);
+			*line = (char *)malloc(sizeof(char) * (size_t)(newline - remnant->str + 1));
+			ft_memcpy(*line, remnant->str, (size_t)(newline - remnant->str));
+			ft_create_remnant(&newline, (ssize_t)(remnant->len - (size_t)(newline - remnant->str)));
+			return ((char *)(-1));
 		}
-		(*buf)[bytes] = '\0';
-		end_of_line = ft_strchr(*buf, '\n');
 	}
-	return (ft_handle_tail(line, buf, end_of_line));
+	newline = ft_read_buffer(fd, &buf, &addition);
+	if (!newline++ && addition > 0)
+		*line = ft_link_bufs(fd, line, size + BUFF_SIZE);
+	else if (addition > 0)
+	{
+		remnant = ft_create_remnant(&newline, addition);
+		*line = (char *)malloc(sizeof(char) * (size + (size_t)addition + 1));
+		if (!remnant || !*line)
+			return (NULL);
+		(*line)[size + old_len + (size_t)addition] = '\0';
+	}
+	else
+		return (NULL);
+	ft_memcpy(*line + size + old_len, buf, (size_t)addition);
+	free(buf);
+	if (!size)
+		ft_memcpy(*line, remnant->str, old_len);
+	return (*line);
 }
 
 int	get_next_line(const int fd, char **line)
 {
-	static char	*buf[FD_MAX + 1];
-	int			result;
-
-	if (fd < 0 || !line || fd > FD_MAX)
-		return (-1);
+	char	*temp;
 	*line = ft_strnew(0);
-	if (!buf[fd])
-		if (ft_initialize_buffer(&buf[fd]))
-			return (-1);
-	result = ft_fill(line, &buf[fd], fd, ft_strchr(buf[fd], '\n'));
-	if (result == -1)
-		ft_strdel(line);
-	return (result);
+	temp = *line;
+	ft_link_bufs(fd, line, 0);
+	free(temp);
+	return (1);
 }
