@@ -6,20 +6,20 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/21 21:52:07 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/21 22:40:48 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static t_rem	*ft_create_remnant(char **buf, ssize_t addition)
+static t_rem	*ft_create_remnant(char **buf, ssize_t bytes, ssize_t remainder)
 {
 	t_rem	*remnant;
 
 	remnant = (t_rem *)malloc(sizeof(t_rem));
 	if (!remnant)
 		return (NULL);
-	remnant->len = (size_t)(BUFF_SIZE - addition - 1);
+	remnant->len = remainder; //(size_t)(BUFF_SIZE - addition - 1);
 	remnant->str = (char *)malloc(sizeof(char) * (remnant->len + 1));
 	if (!remnant->str)
 		return (NULL);
@@ -49,11 +49,12 @@ static char	*ft_link_bufs(const int fd, char **line, size_t size)
 	ssize_t			addition;
 	char			*newline;
 	size_t			old_len;
+	t_rem			*temp;
 	
 
 	buf = (char *)malloc(sizeof(char) * (BUFF_SIZE + 1));
 	if (!remnant)
-		remnant = ft_create_remnant(&buf, BUFF_SIZE - 1);
+		remnant = ft_create_remnant(&buf, 0, 0);
 	old_len = remnant->len;
 	if (!size)
 	{
@@ -62,7 +63,10 @@ static char	*ft_link_bufs(const int fd, char **line, size_t size)
 		{
 			*line = (char *)malloc(sizeof(char) * (size_t)(newline - remnant->str + 1));
 			ft_memcpy(*line, remnant->str, (size_t)(newline - remnant->str));
-			ft_create_remnant(&newline, (ssize_t)(remnant->len - (size_t)(newline - remnant->str)));
+			(*line)[newline++ - remnant->str] = '\0';
+			temp = remnant;
+			ft_create_remnant(&newline, 0, (ssize_t)(remnant->len - (size_t)(newline - 1 - remnant->str)));
+			free(temp);
 			return ((char *)(-1));
 		}
 	}
