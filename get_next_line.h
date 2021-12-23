@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:23:04 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/21 20:53:04 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/23 21:33:01 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,9 @@
 # define GET_NEXT_LINE_H
 # define BUFF_SIZE 7
 # define FD_MAX 10240
+# define CLEAR 0b0
+# define FETCH 0b1
+# define UPDATE 0b10
 # include "libft/includes/libft.h"
 # include <stdlib.h>
 # include <unistd.h>
