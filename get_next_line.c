@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/23 22:34:35 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/23 22:49:48 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,9 +41,9 @@ static t_rem	*ft_remnant_handler(char **buf, size_t len, size_t flag)
 	return (rem);
 }
 
-static char	*ft_read_buffer(int fd, char **buf, ssize_t *addition)
+static void	ft_read_buffer(int fd, char **buf, ssize_t *addition)
 {
-
+	*addition = read(fd, *buf, BUFF_SIZE);
 }
 
 static char	*ft_link_bufs(const int fd, char **line, size_t size)
@@ -55,21 +55,20 @@ static char	*ft_link_bufs(const int fd, char **line, size_t size)
 	buf = (char *)malloc(sizeof(char) * (BUFF_SIZE/* + 1 */));
 	if (!buf)
 		return ((char *)(-1));
-	ft_read_buffer(fd, &buf, &addition);
+	/*size += */ft_read_buffer(fd, &buf, &addition);
 	if (addition == -1)
 		return ((char *)(-1));
 	newline = ft_memchr(buf, '\n', addition);
 	if (!newline++)
-		*line = ft_link_bufs(fd, line, size + BUFF_SIZE);
-	if (addition < BUFF_SIZE)
-	{
-		ft_remnant_handler(&newline, addition - (newline - 1 - buf), UPDATE);
-		*line = (char *)malloc(sizeof(char) * (size + (newline - buf) + 1));
-		ft_memrplc(buf, newline - buf, '\0', '\n');
-		ft_memcpy(*line + size, buf, newline - buf);
-		return (*line);
-	}
-	ft_memcpy(*line + size, buf, BUFF_SIZE);
+		*line = ft_link_bufs(fd, line, size);
+	if (addition == BUFF_SIZE)
+		return (ft_memcpy(*line + size, buf, BUFF_SIZE)/* - size*/);
+	ft_remnant_handler(&newline, addition - (newline - 1 - buf), UPDATE);
+	*line = (char *)malloc(sizeof(char) * (size + (--newline - buf) + 1));
+	ft_memrplc(buf, newline - buf, '\0', '\n');
+	ft_memcpy(*line + size, buf, newline - buf);
+	*line[size + (newline - buf)] = '\0';
+	return (*line);
 }
 
 int	get_next_line(const int fd, char **line)
