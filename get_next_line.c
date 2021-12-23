@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/23 19:15:33 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/23 20:15:59 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ static char	*ft_link_bufs(const int fd, char **line, size_t size)
 		}
 	}
 	newline = ft_read_buffer(fd, &buf, &addition, &remnant);
-	if (!newline && addition > 0)
+	if (!newline && addition == BUFF_SIZE)
 		*line = ft_link_bufs(fd, line, size + BUFF_SIZE);
 	else if (newline && addition >= 0)
 	{
@@ -94,15 +94,21 @@ static char	*ft_link_bufs(const int fd, char **line, size_t size)
 		(*line)[size + prev_rem->len + (size_t)addition] = '\0';
 	}
 	else if (!newline && !addition)
+	{
+		free(buf);
 		return ((char *)0);
+	}
 	else
-		return ((char *)0);
+	{
+		*line = (char *)malloc(sizeof(char) * (size_t)(addition + 1)); //return ((char *)0);
+		(*line)[addition] = '\0';
+	}
 	ft_memcpy(*line + size + prev_rem->len, buf, (size_t)addition);
 	free(buf);
 	if (!size)
 	{
 		ft_memcpy(*line, prev_rem->str, prev_rem->len);
-		free(prev_rem);
+		//free(prev_rem);
 	}
 	return (*line);
 }
@@ -110,11 +116,12 @@ static char	*ft_link_bufs(const int fd, char **line, size_t size)
 int	get_next_line(const int fd, char **line)
 {
 	char	*temp;
-	int		result;
+	long	result;
 
+	if (fd < 0 || !line || fd > FD_MAX)
 	*line = ft_strnew(0);
 	temp = *line;
-	result = (int)ft_link_bufs(fd, line, 0);
+	result = (long)ft_link_bufs(fd, line, 0);
 	if (result)
 		free(temp);
 	if (result == -1)
