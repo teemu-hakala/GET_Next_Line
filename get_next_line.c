@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/23 20:15:59 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/23 20:27:51 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,37 +59,37 @@ static char	*ft_read_buffer(int fd, char **buf, ssize_t *addition, \
 
 static char	*ft_link_bufs(const int fd, char **line, size_t size)
 {
-	static t_rem	*remnant;
+	static t_rem	*remnant[FD_MAX + 1];
 	char			*buf;
 	ssize_t			addition;
 	char			*newline;
 	t_rem			*prev_rem;
 
 	buf = (char *)malloc(sizeof(char) * (BUFF_SIZE + 1));
-	if (!remnant)
-		remnant = ft_create_remnant(&buf, 0, 0, NULL);
-	prev_rem = remnant;
+	if (!remnant[fd])
+		remnant[fd] = ft_create_remnant(&buf, 0, 0, NULL);
+	prev_rem = remnant[fd];
 	if (!size)
 	{
-		newline = ft_memchr(remnant->str, '\n', remnant->len);
+		newline = ft_memchr(remnant[fd]->str, '\n', remnant[fd]->len);
 		if (newline)
 		{
-			*line = (char *)malloc(sizeof(char) * (size_t)(newline - remnant->str + 1));
-			ft_memcpy(*line, remnant->str, (size_t)(newline - remnant->str));
-			ft_memrplc(*line, (size_t)(newline - remnant->str), '\0', '\n');
-			(*line)[newline++ - remnant->str] = '\0';
-			ft_create_remnant(&newline, (ssize_t)(remnant->len - (size_t)(newline - remnant->str)), remnant->len, &remnant);
+			*line = (char *)malloc(sizeof(char) * (size_t)(newline - remnant[fd]->str + 1));
+			ft_memcpy(*line, remnant[fd]->str, (size_t)(newline - remnant[fd]->str));
+			ft_memrplc(*line, (size_t)(newline - remnant[fd]->str), '\0', '\n');
+			(*line)[newline++ - remnant[fd]->str] = '\0';
+			ft_create_remnant(&newline, (ssize_t)(remnant[fd]->len - (size_t)(newline - remnant[fd]->str)), remnant[fd]->len, &remnant[fd]);
 			return ((char *)1);
 		}
 	}
-	newline = ft_read_buffer(fd, &buf, &addition, &remnant);
+	newline = ft_read_buffer(fd, &buf, &addition, &remnant[fd]);
 	if (!newline && addition == BUFF_SIZE)
 		*line = ft_link_bufs(fd, line, size + BUFF_SIZE);
 	else if (newline && addition >= 0)
 	{
 		//remnant = ft_create_remnant(&newline, addition, remnant->len, &remnant);
 		*line = (char *)malloc(sizeof(char) * (size + (size_t)addition + prev_rem->len + 1));
-		if (!remnant || !*line)
+		if (!remnant[fd] || !*line)
 			return ((char *)(-1));
 		(*line)[size + prev_rem->len + (size_t)addition] = '\0';
 	}
@@ -119,6 +119,7 @@ int	get_next_line(const int fd, char **line)
 	long	result;
 
 	if (fd < 0 || !line || fd > FD_MAX)
+		return (-1);
 	*line = ft_strnew(0);
 	temp = *line;
 	result = (long)ft_link_bufs(fd, line, 0);
