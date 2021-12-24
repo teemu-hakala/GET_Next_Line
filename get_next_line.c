@@ -6,13 +6,13 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/25 00:16:26 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/25 00:50:24 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static t_rem	**ft_remnant(char **buf, size_t len, char *idx, size_t flag)
+static t_rem	**ft_remnant(char *buf, size_t len, char *idx, size_t flag)
 {
 	static t_rem	*rem;
 	char			*previous;
@@ -29,14 +29,14 @@ static t_rem	**ft_remnant(char **buf, size_t len, char *idx, size_t flag)
 	if (!(flag ^ FETCH))
 		return (&rem);
 	rem->len = len;
-	rem->idx = idx;
+	rem->i = idx;
 	previous = rem->str;
-	rem->str = *buf;
+	rem->str = buf;
 	free(previous);
 	return (&rem);
 }
 
-static char	*ft_link_bufs(const int fd, char **line, size_t size)
+static char	*ft_link(const int fd, char **line, size_t size)
 {
 	char	*buf;
 	char	*nl;
@@ -50,14 +50,15 @@ static char	*ft_link_bufs(const int fd, char **line, size_t size)
 		return ((char *)(addition));
 	nl = ft_memchr(buf, '\n', (size_t)addition);
 	if (!nl)
-		*line = ft_link_bufs(fd, line, size + BUFF_SIZE);
+		*line = ft_link(fd, line, size + BUFF_SIZE);
 	if (!nl && addition == BUFF_SIZE)
-		return (ft_memcpy(*line + size, buf, BUFF_SIZE) - size);
+		return (ft_memrplc(ft_memcpy(*line + size, buf, BUFF_SIZE), BUFF_SIZE, \
+			'\0', '\n') - size);
 	*line = (char *)malloc(sizeof(char) * (size + (size_t)(nl - buf) + 1));
-	ft_memcpy(*line, (*ft_remnant(NULL, 0, 0, FETCH))->str, size % BUFF_SIZE);
-	ft_remnant(buf, (size_t)addition, (size_t)(nl - buf + 1), UPDATE);
+	ft_memcpy(*line, (*ft_remnant(NULL, 0, 0, FETCH))->i, size % BUFF_SIZE);
+	ft_remnant(buf, (size_t)addition, nl + 1, UPDATE);
 	ft_memcpy(*line + size, buf, (size_t)(nl - buf));
-	ft_memrplc(*line, (size_t)(nl - buf), '\0', '\n');
+	ft_memrplc(*line + size, (size_t)(nl - buf), '\0', '\n');
 	(*line)[size + (size_t)(nl - buf)] = '\0';
 	return (*line);
 }
@@ -71,18 +72,18 @@ int	get_next_line(const int fd, char **line)
 	if (fd < 0 || !line)
 		return (-1);
 	r = ft_remnant(NULL, 0, NULL, FETCH);
-	nl = ft_memchr((*r)->idx, '\n', (*r)->len - ((*r)->idx - (*r)->str));
+	nl = ft_memchr((*r)->i, '\n', (*r)->len - (size_t)((*r)->i - (*r)->str));
 	if (nl)
 	{
-		*line = (char *)malloc(sizeof(char) * ((size_t)(nl - (*r)->idx) + 1));
+		*line = (char *)malloc(sizeof(char) * ((size_t)(nl - (*r)->i) + 1));
 		if (!*line)
 			return (-1);
-		(*line)[(size_t)(nl - (*r)->str)] = '\0';
-		ft_memcpy(*line, (*r)->str, (size_t)(nl - (*r)->str));
-		(*r)->idx = nl + (nl - (*r)->str != (*r)->len);
+		(*line)[(size_t)(nl - (*r)->i)] = '\0';
+		ft_memcpy(*line, (*r)->i, (size_t)(nl - (*r)->i));
+		(*r)->i = nl + ((size_t)(nl - (*r)->str) != (*r)->len);
 		return (1);
 	}
-	result = (long)ft_link_bufs(fd, line, (*r)->len);
+	result = (long)ft_link(fd, line, (*r)->len - (size_t)((*r)->i - (*r)->str));
 	if (!result)
 		return ((int)ft_remnant(NULL, 0, 0, CLEAR));
 	if (result == -1)

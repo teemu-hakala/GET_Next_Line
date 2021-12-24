@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:23:04 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/24 23:53:34 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/25 00:28:26 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ typedef struct s_remnant
 {
 	char	*str;
 	size_t	len;
-	char	*idx;
+	char	*i;
 }	t_rem;
 
 int	get_next_line(const int fd, char **line);
