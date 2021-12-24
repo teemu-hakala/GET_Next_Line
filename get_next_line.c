@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/25 00:50:24 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/25 01:17:02 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,9 +36,18 @@ static t_rem	**ft_remnant(char *buf, size_t len, char *idx, size_t flag)
 	return (&rem);
 }
 
-static char	*ft_link(const int fd, char **line, size_t size)
+/*static void	*ft_memchrend(void *mem, int chr, size_t end)
 {
-	char	*buf;
+	void	*result;
+
+	result = ft_memchr(mem, chr, end);
+	if (!result)
+		result = mem + end;
+	return (result);
+}*/
+
+static char	*ft_link(const int fd, char **line, size_t size, char *buf)
+{
 	char	*nl;
 	ssize_t	addition;
 
@@ -50,13 +59,15 @@ static char	*ft_link(const int fd, char **line, size_t size)
 		return ((char *)(addition));
 	nl = ft_memchr(buf, '\n', (size_t)addition);
 	if (!nl)
-		*line = ft_link(fd, line, size + BUFF_SIZE);
+		*line = ft_link(fd, line, size + BUFF_SIZE, buf);
 	if (!nl && addition == BUFF_SIZE)
 		return (ft_memrplc(ft_memcpy(*line + size, buf, BUFF_SIZE), BUFF_SIZE, \
 			'\0', '\n') - size);
+	if (!nl)
+		nl = buf + addition;
 	*line = (char *)malloc(sizeof(char) * (size + (size_t)(nl - buf) + 1));
 	ft_memcpy(*line, (*ft_remnant(NULL, 0, 0, FETCH))->i, size % BUFF_SIZE);
-	ft_remnant(buf, (size_t)addition, nl + 1, UPDATE);
+	ft_remnant(buf, (size_t)addition, nl + (nl - buf != addition), UPDATE);
 	ft_memcpy(*line + size, buf, (size_t)(nl - buf));
 	ft_memrplc(*line + size, (size_t)(nl - buf), '\0', '\n');
 	(*line)[size + (size_t)(nl - buf)] = '\0';
@@ -83,7 +94,8 @@ int	get_next_line(const int fd, char **line)
 		(*r)->i = nl + ((size_t)(nl - (*r)->str) != (*r)->len);
 		return (1);
 	}
-	result = (long)ft_link(fd, line, (*r)->len - (size_t)((*r)->i - (*r)->str));
+	result = (long)ft_link(fd, line, (*r)->len - (size_t)((*r)->i - (*r)->str),
+			NULL);
 	if (!result)
 		return ((int)ft_remnant(NULL, 0, 0, CLEAR));
 	if (result == -1)
