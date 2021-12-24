@@ -6,18 +6,13 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/24 16:47:15 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/25 00:16:26 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-/*
-	Adding nul byte '\0' is redundant since memchr is used?
-	return (((char *)ft_memcpy(rem->str, *buf, rem->len))[rem->len] = '\0');
-*/
-
-static t_rem	*ft_remnant_handler(char **buf, size_t len, size_t flag)
+static t_rem	**ft_remnant(char **buf, size_t len, char *idx, size_t flag)
 {
 	static t_rem	*rem;
 	char			*previous;
@@ -32,18 +27,13 @@ static t_rem	*ft_remnant_handler(char **buf, size_t len, size_t flag)
 	if (!rem)
 		return (NULL);
 	if (!(flag ^ FETCH))
-		return (rem);
+		return (&rem);
 	rem->len = len;
+	rem->idx = idx;
 	previous = rem->str;
-	rem->str = (char *)malloc(sizeof(char) * (rem->len/* + 1*/));
-	ft_memcpy(rem->str, *buf, rem->len);
+	rem->str = *buf;
 	free(previous);
-	return (rem);
-}
-
-static void	ft_read_buffer(int fd, char **buf, ssize_t *addition)
-{
-	*addition = read(fd, *buf, BUFF_SIZE);
+	return (&rem);
 }
 
 static char	*ft_link_bufs(const int fd, char **line, size_t size)
@@ -52,62 +42,49 @@ static char	*ft_link_bufs(const int fd, char **line, size_t size)
 	char	*nl;
 	ssize_t	addition;
 
-	buf = (char *)malloc(sizeof(char) * (BUFF_SIZE/* + 1 */));
+	buf = (char *)malloc(sizeof(char) * (BUFF_SIZE));
 	if (!buf)
 		return ((char *)(-1));
-	/*size += */ft_read_buffer(fd, &buf, &addition);
+	addition = read(fd, buf, BUFF_SIZE);
 	if (addition <= 0)
 		return ((char *)(addition));
 	nl = ft_memchr(buf, '\n', (size_t)addition);
 	if (!nl)
 		*line = ft_link_bufs(fd, line, size + BUFF_SIZE);
-	if (!nl++ && addition == BUFF_SIZE)
+	if (!nl && addition == BUFF_SIZE)
 		return (ft_memcpy(*line + size, buf, BUFF_SIZE) - size);
-	ft_remnant_handler(&nl, (size_t)(addition - (nl - buf)), UPDATE);
-	*line = (char *)malloc(sizeof(char) * (size + (size_t)(--nl - buf) + 1));
-	ft_memrplc(buf, (size_t)(nl - buf), '\0', '\n');
+	*line = (char *)malloc(sizeof(char) * (size + (size_t)(nl - buf) + 1));
+	ft_memcpy(*line, (*ft_remnant(NULL, 0, 0, FETCH))->str, size % BUFF_SIZE);
+	ft_remnant(buf, (size_t)addition, (size_t)(nl - buf + 1), UPDATE);
 	ft_memcpy(*line + size, buf, (size_t)(nl - buf));
+	ft_memrplc(*line, (size_t)(nl - buf), '\0', '\n');
 	(*line)[size + (size_t)(nl - buf)] = '\0';
 	return (*line);
 }
 
 int	get_next_line(const int fd, char **line)
 {
-	t_rem	*rem;
-	t_rem	*tmp;
+	t_rem	**r;
 	char	*nl;
 	long	result;
 
 	if (fd < 0 || !line)
 		return (-1);
-	rem = ft_remnant_handler(NULL, 0, FETCH);
-	nl = ft_memchr(rem->str, '\n', rem->len);
+	r = ft_remnant(NULL, 0, NULL, FETCH);
+	nl = ft_memchr((*r)->idx, '\n', (*r)->len - ((*r)->idx - (*r)->str));
 	if (nl)
 	{
-		*line = (char *)malloc(sizeof(char) * ((size_t)(nl - rem->str) + 1));
+		*line = (char *)malloc(sizeof(char) * ((size_t)(nl - (*r)->idx) + 1));
 		if (!*line)
 			return (-1);
-		(*line)[(size_t)(nl - rem->str)] = '\0';
-		ft_memcpy(*line, rem->str, (size_t)(nl++ - rem->str));
-		ft_remnant_handler(&nl, rem->len - (size_t)(nl - rem->str), UPDATE); //
+		(*line)[(size_t)(nl - (*r)->str)] = '\0';
+		ft_memcpy(*line, (*r)->str, (size_t)(nl - (*r)->str));
+		(*r)->idx = nl + (nl - (*r)->str != (*r)->len);
 		return (1);
 	}
-	tmp = (t_rem *)malloc(sizeof(t_rem *));
-	if (!tmp)
-		return (-1);
-	tmp->str = ft_memdup(rem->str, rem->len);
-	tmp->len = rem->len;
-	if (!tmp->str)
-		return (-1);
-	tmp->str[rem->len] = '\0';
-	result = (long)ft_link_bufs(fd, line, rem->len); // , 0)
-	if (!tmp->len && !result)
-		return ((int)ft_remnant_handler(NULL, 0, CLEAR));
-	ft_memcpy(*line, tmp->str, tmp->len); //rem has been free'ed...
-	ft_memrplc(*line, tmp->len, '\0', '\n');
-	//ft_remnant_handler((char **)&"", 0, UPDATE);
-	free(tmp->str);
-	free(tmp);
+	result = (long)ft_link_bufs(fd, line, (*r)->len);
+	if (!result)
+		return ((int)ft_remnant(NULL, 0, 0, CLEAR));
 	if (result == -1)
 		return (-1);
 	return (!!result);

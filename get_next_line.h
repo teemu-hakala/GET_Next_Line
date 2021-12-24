@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:23:04 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/23 21:33:01 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/24 23:53:34 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,11 @@
 # include <unistd.h>
 # include <string.h>
 
-typedef struct	s_rem
+typedef struct s_remnant
 {
 	char	*str;
 	size_t	len;
+	char	*idx;
 }	t_rem;
 
 int	get_next_line(const int fd, char **line);
