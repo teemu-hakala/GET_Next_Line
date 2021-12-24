@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/24 11:59:34 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/24 16:47:15 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +56,8 @@ static char	*ft_link_bufs(const int fd, char **line, size_t size)
 	if (!buf)
 		return ((char *)(-1));
 	/*size += */ft_read_buffer(fd, &buf, &addition);
-	if (addition == -1)
-		return ((char *)(-1));
+	if (addition <= 0)
+		return ((char *)(addition));
 	nl = ft_memchr(buf, '\n', (size_t)addition);
 	if (!nl)
 		*line = ft_link_bufs(fd, line, size + BUFF_SIZE);
@@ -89,13 +89,20 @@ int	get_next_line(const int fd, char **line)
 			return (-1);
 		(*line)[(size_t)(nl - rem->str)] = '\0';
 		ft_memcpy(*line, rem->str, (size_t)(nl++ - rem->str));
-		ft_remnant_handler(&nl, rem->len - (size_t)(nl - 1 - rem->str), UPDATE); //
+		ft_remnant_handler(&nl, rem->len - (size_t)(nl - rem->str), UPDATE); //
 		return (1);
 	}
-	tmp = ft_memdup(rem, sizeof(t_rem *));
+	tmp = (t_rem *)malloc(sizeof(t_rem *));
+	if (!tmp)
+		return (-1);
 	tmp->str = ft_memdup(rem->str, rem->len);
+	tmp->len = rem->len;
+	if (!tmp->str)
+		return (-1);
 	tmp->str[rem->len] = '\0';
 	result = (long)ft_link_bufs(fd, line, rem->len); // , 0)
+	if (!tmp->len && !result)
+		return ((int)ft_remnant_handler(NULL, 0, CLEAR));
 	ft_memcpy(*line, tmp->str, tmp->len); //rem has been free'ed...
 	ft_memrplc(*line, tmp->len, '\0', '\n');
 	//ft_remnant_handler((char **)&"", 0, UPDATE);
