@@ -6,12 +6,12 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/25 02:31:21 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/25 12:16:38 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-
+	#include <stdio.h>
 static t_rem	**ft_remnant(char *buf, size_t len, char *idx, size_t flag)
 {
 	static t_rem	*rem;
@@ -52,6 +52,7 @@ static char	*ft_link(const int fd, char **line, size_t size, char *buf)
 	char	*nl;
 	ssize_t	addition;
 
+	//printf("%zu\n", size);
 	addition = read(fd, buf, BUFF_SIZE);
 	if (addition <= 0)
 	{
@@ -61,7 +62,7 @@ static char	*ft_link(const int fd, char **line, size_t size, char *buf)
 	nl = ft_memchr(buf, '\n', (size_t)addition);
 	if (!nl)
 		*line = ft_link(fd, line, size + BUFF_SIZE, malloc(BUFF_SIZE));
-	if (!nl && addition == BUFF_SIZE)
+	if (!nl && addition == BUFF_SIZE && *line)
 		return (ft_memrplc(ft_memcpf(*line + size, buf, BUFF_SIZE), BUFF_SIZE, \
 			'\0', '\n') - size);
 	if (!nl)
