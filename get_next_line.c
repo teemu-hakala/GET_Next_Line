@@ -6,7 +6,7 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:21:02 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/25 01:17:02 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/25 02:31:21 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,36 +32,37 @@ static t_rem	**ft_remnant(char *buf, size_t len, char *idx, size_t flag)
 	rem->i = idx;
 	previous = rem->str;
 	rem->str = buf;
-	free(previous);
+	ft_strdel(&previous);
 	return (&rem);
 }
 
-/*static void	*ft_memchrend(void *mem, int chr, size_t end)
+static void	*ft_memcpf(void *dst, const void *src, size_t n)
 {
-	void	*result;
+	ft_memcpy(dst, src, n);
+	free((void *)src);
+	return (dst);
+}
 
-	result = ft_memchr(mem, chr, end);
-	if (!result)
-		result = mem + end;
-	return (result);
-}*/
+/*
+	read protects buf malloc failure into addition!
+*/
 
 static char	*ft_link(const int fd, char **line, size_t size, char *buf)
 {
 	char	*nl;
 	ssize_t	addition;
 
-	buf = (char *)malloc(sizeof(char) * (BUFF_SIZE));
-	if (!buf)
-		return ((char *)(-1));
 	addition = read(fd, buf, BUFF_SIZE);
 	if (addition <= 0)
+	{
+		free(buf);
 		return ((char *)(addition));
+	}
 	nl = ft_memchr(buf, '\n', (size_t)addition);
 	if (!nl)
-		*line = ft_link(fd, line, size + BUFF_SIZE, buf);
+		*line = ft_link(fd, line, size + BUFF_SIZE, malloc(BUFF_SIZE));
 	if (!nl && addition == BUFF_SIZE)
-		return (ft_memrplc(ft_memcpy(*line + size, buf, BUFF_SIZE), BUFF_SIZE, \
+		return (ft_memrplc(ft_memcpf(*line + size, buf, BUFF_SIZE), BUFF_SIZE, \
 			'\0', '\n') - size);
 	if (!nl)
 		nl = buf + addition;
@@ -95,7 +96,7 @@ int	get_next_line(const int fd, char **line)
 		return (1);
 	}
 	result = (long)ft_link(fd, line, (*r)->len - (size_t)((*r)->i - (*r)->str),
-			NULL);
+			malloc(BUFF_SIZE));
 	if (!result)
 		return ((int)ft_remnant(NULL, 0, 0, CLEAR));
 	if (result == -1)
