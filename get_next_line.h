@@ -6,13 +6,13 @@
 /*   By: thakala <thakala@student.hive.fi>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/06 19:23:04 by thakala           #+#    #+#             */
-/*   Updated: 2021/12/25 00:28:26 by thakala          ###   ########.fr       */
+/*   Updated: 2021/12/25 12:19:10 by thakala          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
-# define BUFF_SIZE 7
+# define BUFF_SIZE 5
 # define FD_MAX 10240
 # define CLEAR 0b0
 # define FETCH 0b1
